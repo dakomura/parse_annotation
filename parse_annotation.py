@@ -7,7 +7,7 @@ import sys
 def get_option():
     argparser = ArgumentParser()
     
-    argparser.add_argument('path_to_annotation', help='')
+#    argparser.add_argument('path_to_annotation', help='')
     argparser.add_argument('path_to_openslide', help='') 
     argparser.add_argument('path_to_save_directory', help='') 
     
@@ -25,8 +25,8 @@ def get_option():
 
 
 def get_coordination(args):
-    annotation_file = args.path_to_annotation
     openslide_path = args.path_to_openslide
+    annotation_file = "{}.ndpa".format(openslide_path)
     wsi=openslide.OpenSlide(openslide_path)
     tree = ET.parse(annotation_file) 
     mpp_x=float(wsi.properties['openslide.mpp-x'])
