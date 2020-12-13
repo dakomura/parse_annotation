@@ -33,8 +33,8 @@ def get_coordination(args):
     mpp_y=float(wsi.properties['openslide.mpp-y'])
     annotations={}
     for idx,ndpviewstate in enumerate(tree.getiterator('ndpviewstate')):
-        annot_type = int(ndpviewstate.find('annotation').get('closed'))
-	if annot_type == 0: continue #not closed
+        annot_type = ndpviewstate.find('annotation').get('displayname')
+        if annot_type == "AnnotateFreehandLine": continue #not closed
 
         annotations[idx]=(ndpviewstate.find('annotation').get('color'),[])
         for point in ndpviewstate.find('annotation').find('pointlist'):
