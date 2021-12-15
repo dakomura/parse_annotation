@@ -18,6 +18,9 @@ def get_option():
     argparser.add_argument('-b','--path_to_barcodes', type=str,
                            default='',
                            help='Debug the application. Read 200000 lines.')
+    argparser.add_argument('--color', type=str,
+                           default='',
+                           help='used color (ff0000, 00ff00)')
     
 
 
@@ -25,6 +28,7 @@ def get_option():
 
 
 def get_coordination(args):
+    used_color = args.color
     openslide_path = args.path_to_openslide
     annotation_file = "{}.ndpa".format(openslide_path)
     wsi=openslide.OpenSlide(openslide_path)
@@ -34,12 +38,17 @@ def get_coordination(args):
     annotations={}
     for idx,ndpviewstate in enumerate(tree.getiterator('ndpviewstate')):
         annot_type = ndpviewstate.find('annotation').get('displayname')
-        if annot_type == "AnnotateFreehandLine": continue #not closed
-
-        annotations[idx]=(ndpviewstate.find('annotation').get('color'),[])
+#        meningioma annotations are accidentally not closed
+#        if annot_type == "AnnotateFreehandLine": continue #not closed
+        color = ndpviewstate.find('annotation').get('color')
+        if used_color is None or used_color != color.strip('#'):
+            continue
+        annotations[idx]=(color,[])
         for point in ndpviewstate.find('annotation').find('pointlist'):
             x=int(point[0].text)
             y=int(point[1].text)
+
+#### Hamamatsu用処理 ####
             
             openslide_x_nm_from_center=x-int(wsi.properties['hamamatsu.XOffsetFromSlideCentre'])
             openslide_y_nm_from_center=y-int(wsi.properties['hamamatsu.YOffsetFromSlideCentre'])
@@ -47,8 +56,11 @@ def get_coordination(args):
             openslide_y_nm_from_topleft=openslide_y_nm_from_center+int(wsi.properties['openslide.level[0].height'])*mpp_y*1000//2
             openslide_x_pixels_from_topleft=openslide_x_nm_from_topleft//(1000*mpp_x)
             openslide_y_pixels_from_topleft=openslide_y_nm_from_topleft//(1000*mpp_y)
+#### Hamamatsu用処理:ここまで ####
+#### Aperio用処理 ####
 #            openslide_x_pixels_from_topleft=x//(1000*mpp_x)
 #            openslide_y_pixels_from_topleft=y//(1000*mpp_y)
+#### Aperio用処理:ここまで ####
             
             annotations[idx][1].append((int(openslide_x_pixels_from_topleft),int(openslide_y_pixels_from_topleft)))
             
